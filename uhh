@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Pairing Registry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .character-link:hover { text-decoration: underline; cursor: pointer; color: #3b82f6; }
+        .tab-active { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">Registry of Sandbina Server Pairings</h1>
+            <p class="text-gray-400">Database of "Fanon" and Canon Relationships. Do not take this seriously, dm Shon if you want something removed! <3</p>
+        </header>
+
+        <div class="flex flex-col md:flex-row gap-4 mb-6">
+            <input type="text" id="searchInput" placeholder="Search character or pairing..." 
+                   class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+            
+            <div class="flex border-b border-gray-700">
+                <button onclick="setTab('FANON')" id="tabFanon" class="px-6 py-2 tab-active font-semibold">FANON</button>
+                <button onclick="setTab('CANON')" id="tabCanon" class="px-6 py-2 font-semibold">CANON</button>
+            </div>
+        </div>
+
+        <div id="focusHeader" class="hidden bg-blue-900/30 border border-blue-500/50 p-4 rounded-lg mb-6 flex justify-between items-center">
+            <span id="focusText" class="font-medium"></span>
+            <button onclick="clearFocus()" class="text-sm bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded">View All</button>
+        </div>
+
+        <div id="pairingsGrid" class="grid gap-4">
+            </div>
+    </div>
+
+    <script>
+        const db = {
+            FANON: [
+                { name: "Skigita", chars: ["Skirk", "Megita"], desc: "Soft spoken/affectionate x tsundere" },
+                { name: "Megavi", chars: ["Megita", "Avi"], desc: "Hates each other" },
+                { name: "Lemmita", chars: ["Lemmi", "Megita"], desc: "Aphobic x ace" },
+                { name: "Meglev", chars: ["Megita", "Lev"], desc: "Medtech x nursing enemies to lovers" },
+                { name: "Megana", chars: ["Megita", "Hana"], desc: "One is dead" },
+                { name: "Megshon", chars: ["Megita", "Shon"], desc: "Megita’s friends thinks theyre dating" },
+                { name: "Megilith", chars: ["Megita", "Lilith"], desc: "Foot pic" },
+                { name: "Levshu", chars: ["Lev", "Wangshu"], desc: "Affectionate x tsundere" },
+                { name: "Rainshu", chars: ["Rainy", "Wangshu"], desc: "Mathuationship" },
+                { name: "Rainsum", chars: ["Rainy", "Asum"], desc: "Codependent pookies" },
+                { name: "Sayum", chars: ["Saya", "Asum"], desc: "Saya is asum's plaything" },
+                { name: "Solsum", chars: ["Sol", "Asum"], desc: "Lemmi's monoship" },
+                { name: "Shum", chars: ["Shon", "Asum"], desc: "First follower of jesus type of thingggg" },
+                { name: "Adashu", chars: ["Ada", "Wangshu"], desc: "Bad end fell off" },
+                { name: "Shuemiyo", chars: ["Wangshu", "Emi", "Miyo"], desc: "Three bottoms" },
+                { name: "Rainada", chars: ["Ada", "Rainy"], desc: "Wives" },
+                { name: "Adaqer", chars: ["Ada", "Qerfuin"], desc: "Clingy ex-player x shy player" },
+                { name: "Adashon", chars: ["Ada", "Shon"], desc: "Toxic alcoholic oomftuationship, ada hides behind shon, co parenting azman, how straight women acts with each other basically" },
+                { name: "Lemsol", chars: ["Lemmi", "Sol"], desc: "IDK" },
+                { name: "Lemon/Lemshon", chars: ["Lemmi", "Shon"], desc: "Declared love, shon is the redflag one here" },
+                { name: "Kiralem", chars: ["Lemmi", "Kirari"], desc: "Amnesia yuri" },
+                { name: "Lemmirk", chars: ["Lemmi", "Skirk"], desc: "Yuribait" },
+                { name: "Hanalem", chars: ["Hana", "Lemmi"], desc: "Lemmi bottoms" },
+                { name: "Kiravi", chars: ["Kirari", "Avi"], desc: "CEO Kirari x Y/N Avi" },
+                { name: "Skivivi Toilith", chars: ["Lilith", "Avi"], desc: "Skibidarling till fanum do us tax" },
+                { name: "Nomiqer", chars: ["Nomi", "Qerfuin"], desc: "Omega catgirl x alpha" },
+                { name: "Lenomi", chars: ["Lemmi", "Nommi"], desc: "Industry plant…" },
+                { name: "Shonshu", chars: ["Shon", "Wangshu"], desc: "Math x Engineering, LINKEDIN oomftuationship" },
+                { name: "Hanalili", chars: ["Hana", "Lilith"], desc: "Platonic mutual glazing" },
+                { name: "Lilish", chars: ["Lilith", "Shon"], desc: "Hana bodyguards" },
+                { name: "Lilem", chars: ["Lilith", "Lemmi"], desc: "E-cheating" },
+                { name: "Levlith/Lililev", chars: ["Lev", "Lilith"], desc: "Knight x princess" },
+                { name: "Shana/Shona", chars: ["Shon", "Hana"], desc: "Long term long distance medium effort lowkey on & off oomftuationship" },
+                { name: "Shol", chars: ["Shon", "Sol"], desc: "Ruin me (in private), PREVIOUSLY the hertamei of the server." },
+                { name: "Shev", chars: ["Shon", "Lev"], desc: "Lev ties shon's shoes.. Lev’s mom ships them" },
+                { name: "Viva", chars: ["Vivian", "Saya"], desc: "Vivian foot" }
+            ],
+            CANON: [
+                { name: "Cessbina", chars: ["Cessdrone", "Nekobina"], desc: "Divorced with benefits" },
+                { name: "Frannyx", chars: ["Frannie", "Nyx"], desc: "Imported... frannie snuck in the sandbina server" },
+                { name: "Beight", chars: ["B8", "Iolight"], desc: "Imported" },
+                { name: "Evertrix", chars: ["Everday", "Zibai"], desc: "Imported" },
+                { name: "Ashyuri", chars: ["Ashyy", "Notyuri"], desc: "Imported" },
+                { name: "Estherveil", chars: ["Ester", "Moonveil"], desc: "HOMEGROWN & CANON!!!" },
+                { name: "Peasy", chars: ["Peach", "Nessy"], desc: "Google doc is ready for them." }
+            ]
+        };
+
+        let currentTab = 'FANON';
+        let focusChar = null;
+
+        function render() {
+            const grid = document.getElementById('pairingsGrid');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            grid.innerHTML = '';
+
+            const list = db[currentTab].filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(search) || 
+                                    p.chars.some(c => c.toLowerCase().includes(search));
+                const matchesFocus = focusChar ? p.chars.includes(focusChar) : true;
+                return matchesSearch && matchesFocus;
+            });
+
+            list.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-800 p-4 rounded-xl border border-gray-700 hover:border-blue-500 transition shadow-lg';
+                
+                const charLinks = p.chars.map(c => 
+                    `<span class="character-link font-bold text-blue-400" onclick="filterByChar('${c}')">${c}</span>`
+                ).join(' / ');
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold text-white">${p.name}</h3>
+                        <span class="text-xs bg-gray-700 px-2 py-1 rounded text-gray-400 uppercase tracking-widest">${currentTab}</span>
+                    </div>
+                    <p class="text-sm text-gray-300 mb-3">${charLinks}</p>
+                    <p class="text-gray-400 italic text-sm border-l-2 border-blue-500 pl-3">${p.desc}</p>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function setTab(tab) {
+            currentTab = tab;
+            document.getElementById('tabFanon').className = tab === 'FANON' ? 'px-6 py-2 tab-active font-semibold' : 'px-6 py-2 font-semibold';
+            document.getElementById('tabCanon').className = tab === 'CANON' ? 'px-6 py-2 tab-active font-semibold' : 'px-6 py-2 font-semibold';
+            render();
+        }
+
+        function filterByChar(char) {
+            focusChar = char;
+            document.getElementById('focusHeader').classList.remove('hidden');
+            document.getElementById('focusText').innerText = `Showing all pairings for: ${char}`;
+            render();
+        }
+
+        function clearFocus() {
+            focusChar = null;
+            document.getElementById('focusHeader').classList.add('hidden');
+            render();
+        }
+
+        document.getElementById('searchInput').addEventListener('input', render);
+        render();
+    </script>
+</body>
+</html>
+
