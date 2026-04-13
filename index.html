@@ -3,38 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Character Pairing Registry</title>
+    <title>Sandbinaling Pairing Registry</title> 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .character-link:hover { text-decoration: underline; cursor: pointer; color: #3b82f6; }
         .tab-active { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
+        
+        body.light-mode { background-color: #f3f4f6; color: #111827; }
+        .light-mode .bg-gray-800 { background-color: #ffffff; }
+        .light-mode .bg-gray-800\/50 { background-color: rgba(255, 255, 255, 0.5); }
+        .light-mode .border-gray-700 { border-color: #e5e7eb; }
+        .light-mode .text-white { color: #111827; }
+        .light-mode .text-gray-400 { color: #6b7280; }
+        .light-mode .text-gray-300 { color: #374151; }
+        
+        .otp-badge {
+            background: linear-gradient(45deg, #f59e0b, #fbbf24);
+            color: #000;
+            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+        }
+
+        .bar-grow {
+            transition: width 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8">
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8 transition-colors duration-300 font-sans">
 
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-white mb-2">Registry of Sandbina Server Pairings</h1>
-            <p class="text-gray-400">Database of "Fanon" and Canon Relationships. Do not take this seriously, dm Shon if you want something removed! <3</p>
+            <div class="flex justify-between items-center mb-4">
+                <div class="w-10"></div>
+                <h1 class="text-4xl font-bold text-white tracking-tight">Registry of Sandbina Server Pairings</h1>
+                <button onclick="toggleTheme()" id="themeBtn" class="p-2 rounded-full bg-gray-800 border border-gray-700 hover:border-blue-500 transition">🌙</button>
+            </div>
+            <p class="text-gray-400">Database of "Fanon" and Canon Pairings. <br class="hidden md:block"> DM Shon if you want something removed! <3</p>
         </header>
 
-        <div class="flex flex-col md:flex-row gap-4 mb-6">
-            <input type="text" id="searchInput" placeholder="Search character or pairing..." 
-                   class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-            
-            <div class="flex border-b border-gray-700">
-                <button onclick="setTab('FANON')" id="tabFanon" class="px-6 py-2 tab-active font-semibold">FANON</button>
-                <button onclick="setTab('CANON')" id="tabCanon" class="px-6 py-2 font-semibold">CANON</button>
-            </div>
+        <div class="flex justify-center border-b border-gray-700 mb-8 space-x-2 md:space-x-8">
+            <button onclick="setTab('FANON')" id="tabFanon" class="px-4 py-2 tab-active font-bold transition">FANON</button>
+            <button onclick="setTab('CANON')" id="tabCanon" class="px-4 py-2 font-bold text-gray-400 hover:text-white transition">CANON</button>
+            <button onclick="setTab('ANALYTICS')" id="tabAnalytics" class="px-4 py-2 font-bold text-gray-400 hover:text-white transition uppercase tracking-widest">DATA ANALYTICS</button>
         </div>
 
-        <div id="focusHeader" class="hidden bg-blue-900/30 border border-blue-500/50 p-4 rounded-lg mb-6 flex justify-between items-center">
-            <span id="focusText" class="font-medium"></span>
-            <button onclick="clearFocus()" class="text-sm bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded">View All</button>
+        <div id="registryView">
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <input type="text" id="searchInput" placeholder="Search character or pairing..." 
+                       class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="toggleSort()" class="bg-gray-800 border border-gray-700 px-4 py-2 rounded-lg hover:border-blue-500 whitespace-nowrap">
+                    Sort: <span id="sortDir">A-Z</span>
+                </button>
+            </div>
+            <div id="focusHeader" class="hidden bg-blue-900/30 border border-blue-500/50 p-4 rounded-lg mb-6 flex justify-between items-center">
+                <span id="focusText" class="font-medium"></span>
+                <button onclick="clearFocus()" class="text-sm bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded text-white font-bold">Show All</button>
+            </div>
+            <div id="pairingsGrid" class="grid gap-4"></div>
         </div>
 
-        <div id="pairingsGrid" class="grid gap-4">
+        <div id="analyticsView" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-center">
+                <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                    <p class="text-xs uppercase tracking-widest text-blue-400 mb-1">Total Pairings</p>
+                    <p id="statTotal" class="text-5xl font-black text-white italic">0</p>
+                </div>
+                <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                    <p class="text-xs uppercase tracking-widest text-blue-400 mb-1">Unique Sandbinalings</p>
+                    <p id="statUnique" class="text-5xl font-black text-white italic">0</p>
+                </div>
+                <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                    <p class="text-xs uppercase tracking-widest text-blue-400 mb-1">"Most Wanted"</p>
+                    <p id="statLeader" class="text-2xl font-bold text-yellow-400 flex items-center justify-center h-12">-</p>
+                </div>
             </div>
+
+            <div class="bg-gray-800 border border-gray-700 p-8 rounded-2xl shadow-2xl">
+                <h3 class="text-xl font-black uppercase tracking-widest text-white mb-6 flex items-center gap-3">
+                    <span class="flex h-3 w-3 rounded-full bg-blue-500 animate-pulse"></span>
+                    Shon's attempt on Live Leaderboard
+                </h3>
+                <div id="chartBars" class="space-y-6"></div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -45,7 +95,7 @@
                 { name: "Lemmita", chars: ["Lemmi", "Megita"], desc: "Aphobic x ace" },
                 { name: "Meglev", chars: ["Megita", "Lev"], desc: "Medtech x nursing enemies to lovers" },
                 { name: "Megana", chars: ["Megita", "Hana"], desc: "One is dead" },
-                { name: "Megshon", chars: ["Megita", "Shon"], desc: "Megita’s friends thinks theyre dating" },
+                { name: "Megshon/Sharkitty", chars: ["Megita", "Shon"], desc: "Megita’s friends thinks theyre dating" },
                 { name: "Megilith", chars: ["Megita", "Lilith"], desc: "Foot pic" },
                 { name: "Levshu", chars: ["Lev", "Wangshu"], desc: "Affectionate x tsundere" },
                 { name: "Rainshu", chars: ["Rainy", "Wangshu"], desc: "Mathuationship" },
@@ -53,17 +103,18 @@
                 { name: "Sayum", chars: ["Saya", "Asum"], desc: "Saya is asum's plaything" },
                 { name: "Solsum", chars: ["Sol", "Asum"], desc: "Lemmi's monoship" },
                 { name: "Solgita", chars: ["Sol", "Megita"], desc: "Ragebait ship"},
-                { name: "Hanasol", chars: ["Hana", "Sol"], desc: "Sol gave Hana keys..."},
                 { name: "Shum", chars: ["Shon", "Asum"], desc: "First follower of jesus type of thingggg" },
-                { name: "Adashu", chars: ["Ada", "Wangshu"], desc: "Bad end fell off" },
+                { name: "Adashu", chars: ["Ada", "Wangshu"], desc: "Bad end, fell off" },
                 { name: "Shuemiyo", chars: ["Wangshu", "Emi", "Miyo"], desc: "Three bottoms" },
+                { name: "Council", chars: ["Shon", "Aria", "Lev"], desc: "Frat women of the server ngl", isOTP: true },
                 { name: "Rainada", chars: ["Ada", "Rainy"], desc: "Wives" },
                 { name: "Adaqer", chars: ["Ada", "Qerfuin"], desc: "Clingy ex-player x shy player" },
-                { name: "Adashon", chars: ["Ada", "Shon"], desc: "Toxic alcoholic oomftuationship, ada hides behind shon, co parenting azman, how straight women acts with each other basically" },
-                { name: "Lemsol", chars: ["Lemmi", "Sol"], desc: "IDK" },
+                { name: "Adashon", chars: ["Ada", "Shon"], desc: "Toxic alcoholic oomftuationship, ada hides behind shon, co parenting azman, how straight women acts with each other basically", isOTP: true },
+                { name: "Lemsol", chars: ["Lemmi", "Sol"], desc: "IDK tbh..",  isOTP: true},
                 { name: "Lemon/Lemshon", chars: ["Lemmi", "Shon"], desc: "Declared love, shon is the redflag one here" },
                 { name: "Kiralem", chars: ["Lemmi", "Kirari"], desc: "Amnesia yuri" },
                 { name: "Lemmirk", chars: ["Lemmi", "Skirk"], desc: "Yuribait" },
+                { name: "Hanasol", chars: ["Hana", "Sol"], desc: "European union assembly, sol gave hana keys..." },
                 { name: "Hanalem", chars: ["Hana", "Lemmi"], desc: "Lemmi bottoms" },
                 { name: "Kiravi", chars: ["Kirari", "Avi"], desc: "CEO Kirari x Y/N Avi" },
                 { name: "Skivivi Toilith", chars: ["Lilith", "Avi"], desc: "Skibidarling till fanum do us tax" },
@@ -73,50 +124,137 @@
                 { name: "Hanalili", chars: ["Hana", "Lilith"], desc: "Platonic mutual glazing" },
                 { name: "Lilish", chars: ["Lilith", "Shon"], desc: "Hana bodyguards" },
                 { name: "Lilem", chars: ["Lilith", "Lemmi"], desc: "E-cheating" },
-                { name: "Levlith/Lililev", chars: ["Lev", "Lilith"], desc: "Knight x princess" },
-                { name: "Shana/Shona", chars: ["Shon", "Hana"], desc: "Long term long distance medium effort lowkey on & off oomftuationship" },
-                { name: "Shol", chars: ["Shon", "Sol"], desc: "Ruin me (in private), PREVIOUSLY the hertamei of the server." },
-                { name: "Shev", chars: ["Shon", "Lev"], desc: "Lev ties shon's shoes.. Lev’s mom ships them" },
-                { name: "Viva", chars: ["Vivian", "Saya"], desc: "Vivian foot" }
+                { name: "Levlith/Lililev", chars: ["Lev", "Lilith"], desc: "Knight x princess", isOTP: true },
+                { name: "Shana/Shona", chars: ["Shon", "Hana"], desc: "Long term long distance medium effort lowkey on & off oomftuationship", isOTP: true },
+                { name: "Shol", chars: ["Shon", "Sol"], desc: "Ruin me (in private), PREVIOUSLY the hertamei of the server.", isOTP: true },
+                { name: "Shev/Levshon", chars: ["Shon", "Lev"], desc: "Lev ties shon's shoes.. Lev’s mom ships them" },
+                { name: "Viva", chars: ["Vivian", "Saya"], desc: "Vivian foot?.." }
             ],
             CANON: [
                 { name: "Cessbina", chars: ["Cessdrone", "Nekobina"], desc: "Divorced with benefits" },
-                { name: "Frannyx", chars: ["Frannie", "Nyx"], desc: "Imported... frannie snuck in the sandbina server" },
+                { name: "Frannyx", chars: ["Frannie", "Nyx"], desc: "Imported... frannie snuck in the sandbina server", isOTP: true },
                 { name: "Beight", chars: ["B8", "Iolight"], desc: "Imported" },
                 { name: "Evertrix", chars: ["Everday", "Zibai"], desc: "Imported" },
                 { name: "Ashyuri", chars: ["Ashyy", "Notyuri"], desc: "Imported" },
-                { name: "Estherveil", chars: ["Ester", "Moonveil"], desc: "HOMEGROWN & CANON!!!" },
+                { name: "Estherveil", chars: ["Esther", "Moonveil"], desc: "HOMEGROWN & CANON!!!" },
                 { name: "Peasy", chars: ["Peach", "Nessy"], desc: "Google doc is ready for them." }
             ]
         };
 
         let currentTab = 'FANON';
         let focusChar = null;
+        let sortAsc = true;
+
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            if(!obj) return;
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerText = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        function updateAnalytics() {
+            const all = [...db.FANON, ...db.CANON];
+            const counts = {};
+            all.forEach(p => p.chars.forEach(c => counts[c] = (counts[c] || 0) + 1));
+            const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+            const totalShipMentions = Object.values(counts).reduce((a, b) => a + b, 0); // im ngl i used an LLM to generate the animation thing
+
+            animateValue("statTotal", 0, all.length, 1000);
+            animateValue("statUnique", 0, Object.keys(counts).length, 1000);
+            document.getElementById('statLeader').innerText = sorted.length ? sorted[0][0] : '-';
+
+            const chartContainer = document.getElementById('chartBars');
+            chartContainer.innerHTML = '';
+            
+            sorted.slice(0, 8).forEach(([name, count], index) => {
+                const percentage = ((count / totalShipMentions) * 100).toFixed(1);
+                const isShon = name.toLowerCase() === 'shon';
+                const barColor = isShon ? 'bg-yellow-500' : 'bg-blue-600';
+                
+                const barHTML = `
+                    <div class="group cursor-pointer" onclick="goToPerson('${name}')">
+                        <div class="flex justify-between text-xs mb-1 uppercase font-black tracking-widest ${isShon ? 'text-yellow-400' : 'text-gray-400'}">
+                            <span>${name}</span>
+                            <span>${count} ships (${percentage}%)</span>
+                        </div>
+                        <div class="w-full bg-gray-900 rounded-full h-3 overflow-hidden border border-gray-700">
+                            <div id="bar-${index}" class="${barColor} h-full rounded-full bar-grow" 
+                                 style="width: 0%"></div>
+                        </div>
+                    </div>
+                `;
+                chartContainer.insertAdjacentHTML('beforeend', barHTML);
+                
+                setTimeout(() => {
+                    const bar = document.getElementById(`bar-${index}`);
+                    if(bar) bar.style.width = `${Math.min(percentage * 3, 100)}%`;
+                }, 50);
+            });
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            document.getElementById('themeBtn').innerText = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+        }
+
+        function toggleSort() {
+            sortAsc = !sortAsc;
+            document.getElementById('sortDir').innerText = sortAsc ? 'A-Z' : 'Z-A';
+            render();
+        }
+
+        function setTab(tab) {
+            currentTab = tab;
+            const tabs = ['tabFanon', 'tabCanon', 'tabAnalytics'];
+            tabs.forEach(t => document.getElementById(t).className = 'px-4 py-2 font-bold text-gray-400 hover:text-white transition');
+            
+            const activeId = 'tab' + tab.charAt(0) + tab.slice(1).toLowerCase();
+            document.getElementById(activeId).className = 'px-4 py-2 tab-active font-bold transition';
+
+            if (tab === 'ANALYTICS') {
+                document.getElementById('registryView').classList.add('hidden');
+                document.getElementById('analyticsView').classList.remove('hidden');
+                updateAnalytics();
+            } else {
+                document.getElementById('registryView').classList.remove('hidden');
+                document.getElementById('analyticsView').classList.add('hidden');
+                render();
+            }
+        }
 
         function render() {
             const grid = document.getElementById('pairingsGrid');
             const search = document.getElementById('searchInput').value.toLowerCase();
             grid.innerHTML = '';
 
-            const list = db[currentTab].filter(p => {
+            let list = db[currentTab].filter(p => {
                 const matchesSearch = p.name.toLowerCase().includes(search) || 
                                     p.chars.some(c => c.toLowerCase().includes(search));
                 const matchesFocus = focusChar ? p.chars.includes(focusChar) : true;
                 return matchesSearch && matchesFocus;
             });
 
+            list.sort((a, b) => sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
+
             list.forEach(p => {
                 const card = document.createElement('div');
-                card.className = 'bg-gray-800 p-4 rounded-xl border border-gray-700 hover:border-blue-500 transition shadow-lg';
-                
-                const charLinks = p.chars.map(c => 
-                    `<span class="character-link font-bold text-blue-400" onclick="filterByChar('${c}')">${c}</span>`
-                ).join(' / ');
+                card.className = 'bg-gray-800 p-5 rounded-xl border border-gray-700 hover:border-blue-500 transition-all shadow-lg relative overflow-hidden';
+                const otpBadge = p.isOTP ? `<span class="otp-badge absolute top-0 right-0 text-[10px] font-black px-3 py-1 rounded-bl-lg uppercase tracking-widest z-10">Shon's OTP</span>` : '';
+                const charLinks = p.chars.map(c => `<span class="character-link font-bold text-blue-400" onclick="filterByChar('${c}')">${c}</span>`).join(' / ');
 
                 card.innerHTML = `
+                    ${otpBadge}
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="text-xl font-bold text-white">${p.name}</h3>
-                        <span class="text-xs bg-gray-700 px-2 py-1 rounded text-gray-400 uppercase tracking-widest">${currentTab}</span>
+                        <span class="text-[10px] bg-gray-700 px-2 py-1 rounded text-gray-400 uppercase tracking-widest font-bold">${currentTab}</span>
                     </div>
                     <p class="text-sm text-gray-300 mb-3">${charLinks}</p>
                     <p class="text-gray-400 italic text-sm border-l-2 border-blue-500 pl-3">${p.desc}</p>
@@ -125,20 +263,13 @@
             });
         }
 
-        function setTab(tab) {
-            currentTab = tab;
-            document.getElementById('tabFanon').className = tab === 'FANON' ? 'px-6 py-2 tab-active font-semibold' : 'px-6 py-2 font-semibold';
-            document.getElementById('tabCanon').className = tab === 'CANON' ? 'px-6 py-2 tab-active font-semibold' : 'px-6 py-2 font-semibold';
-            render();
-        }
-
+        function goToPerson(name) { setTab('FANON'); filterByChar(name); }
         function filterByChar(char) {
             focusChar = char;
             document.getElementById('focusHeader').classList.remove('hidden');
-            document.getElementById('focusText').innerText = `Showing all pairings for: ${char}`;
+            document.getElementById('focusText').innerText = `Filtering by: ${char}`;
             render();
         }
-
         function clearFocus() {
             focusChar = null;
             document.getElementById('focusHeader').classList.add('hidden');
